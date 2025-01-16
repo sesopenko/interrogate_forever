@@ -8,14 +8,16 @@ import zipfile
 from pathlib import Path
 
 from watchdog.events import FileSystemEventHandler
+from core.interrogator import Interrogator
 
 logger = logging.getLogger(__name__)
 
 
 class InputWatcher(FileSystemEventHandler):
-    def __init__(self, output_path: str, working_path: str):
+    def __init__(self, output_path: str, working_path: str, interrogator: Interrogator):
         self._output_path = output_path
         self._working_path = working_path
+        self._interrogator = interrogator
 
     def clean_start(self):
         delete_all_in_path(self._working_path)
@@ -61,15 +63,16 @@ class InputWatcher(FileSystemEventHandler):
         self._start_job(job_id)
 
     def get_job_working_dir(self, id):
+        # todo: getting an exception here:
         job_working_dir = os.path.join(self._working_path, id)
         return job_working_dir
 
     def _start_job(self, job_id: str):
-        job_working_dir = self.get_job_working_dir(id)
+        job_working_dir = self.get_job_working_dir(job_id)
         images = self.find_images(job_id)
         if len(images) == 0:
             raise ValueError(f"Job {job_id} has no images")
-        image_path = images[0]
+        image_path = os.path.join(job_working_dir, images[0])
         job_file_path = os.path.join(job_working_dir, "job.json")
         if not os.path.exists(job_file_path):
             raise ValueError(f"Job {job_id} has no job file")
@@ -78,21 +81,22 @@ class InputWatcher(FileSystemEventHandler):
         if "model_name" not in job_spec:
             raise ValueError(f"Job {job_id} has no model name")
         model_name = job_spec["model_name"]
-        if not self._is_valid_model_name(model_name):
+        if not self._is_valid_model(model_name):
             raise ValueError(f"Job {job_id} has invalid model name: {model_name}")
+        tags = self._interrogator.process(image_path, model_name)
+        logging.info(f"got tags: {tags}")
+        logging.info(f"finished job {job_id} with model name: {model_name}")
 
 
     def _is_valid_model(self, model_name) -> bool:
-        valid_models = [
-            "openai/clip-vit-large-patch14",
-        ]
+        valid_models = Interrogator.get_valid_models()
         if model_name not in valid_models:
             return False
         return True
 
 
     def find_images(self, job_id):
-        job_working_dir = self.get_job_working_dir(id)
+        job_working_dir = self.get_job_working_dir(job_id)
         try:
             return [
                 f.name
