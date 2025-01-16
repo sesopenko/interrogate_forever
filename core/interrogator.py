@@ -55,6 +55,8 @@ class Interrogator:
         return padded_image
 
     def _setup_model(self, model_name):
+        # TODO: set up the correct one based on the name of model.
+        # ie: blip2 vs blip
         logging.info(f"Setting up model: {model_name}")
         self._current_model_name = model_name
         self._model = Blip2ForConditionalGeneration.from_pretrained(model_name)
