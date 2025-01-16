@@ -86,6 +86,7 @@ class InputWatcher(FileSystemEventHandler):
         tags = self._interrogator.process(image_path, model_name)
         logging.info(f"got tags: {tags}")
         logging.info(f"finished job {job_id} with model name: {model_name}")
+        # TODO: write to output and clean up
 
 
     def _is_valid_model(self, model_name) -> bool:
