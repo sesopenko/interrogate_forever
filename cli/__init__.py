@@ -3,7 +3,8 @@ import logging
 
 import click
 
-from watch_command import watch
+from cli.watch_command import watch
+from cli.create_job import create_job
 
 @click.group()
 def cli():
@@ -14,3 +15,4 @@ def cli():
     )
 
 cli.add_command(watch)
+cli.add_command(create_job)

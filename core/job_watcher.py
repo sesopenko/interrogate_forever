@@ -1,30 +1,27 @@
 import logging
-from datetime import time
+import os
+import time
 
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+
+from core.input_watcher import InputWatcher
 
 logger = logging.getLogger(__name__)
 
-class JobWatcher(FileSystemEventHandler):
-    def __init__(self, output_path: str):
-        self._output_path = output_path
-        pass
-    def on_created(self, event):
-        print(f"File created: {event.src_path}")
 
 class InputObserver():
-    def __init__(self, input_path: str, observer: Observer, watcher: JobWatcher):
+    def __init__(self, input_path: str, observer: Observer, output_watcher: InputWatcher):
         self._observer = observer
         self._input_path: str = input_path
-        self._watcher: JobWatcher = watcher
+        self._output_watcher: InputWatcher = output_watcher
     def start(self):
-        self._observer.schedule(self._watcher, self._input_path, recursive=False)
+        os.makedirs(self._input_path, exist_ok=True)
+        self._observer.schedule(self._output_watcher, self._input_path, recursive=False)
         self._observer.start()
 
         try:
             while True:
-                time.sleep(0.5)
+                time.sleep(0.1)
         except KeyboardInterrupt:
             self._observer.stop()
         # wait until it terminates:
