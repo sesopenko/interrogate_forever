@@ -8,3 +8,4 @@
   * Might work with 
 * [pytorch](https://pytorch.org/get-started/locally/)
 
+It's recommended you configure the HF_HOME env variable to point to somewhere explicit. ie: a docker mount.
