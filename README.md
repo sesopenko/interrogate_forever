@@ -7,3 +7,4 @@
   * If you're on windows, remember to install cuda toolkit before graphics drivers!
   * Might work with 
 * [pytorch](https://pytorch.org/get-started/locally/)
+

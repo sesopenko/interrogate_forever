@@ -20,7 +20,8 @@ class InputWatcher(FileSystemEventHandler):
         self._interrogator = interrogator
 
     def clean_start(self):
-        delete_all_in_path(self._working_path)
+        pass
+        # delete_all_in_path(self._working_path)
 
     def on_created(self, event):
         os.makedirs(self._output_path, exist_ok=True)
@@ -63,7 +64,6 @@ class InputWatcher(FileSystemEventHandler):
         self._start_job(job_id)
 
     def get_job_working_dir(self, id):
-        # todo: getting an exception here:
         job_working_dir = os.path.join(self._working_path, id)
         return job_working_dir
 
@@ -83,7 +83,12 @@ class InputWatcher(FileSystemEventHandler):
         model_name = job_spec["model_name"]
         if not self._is_valid_model(model_name):
             raise ValueError(f"Job {job_id} has invalid model name: {model_name}")
-        tags = self._interrogator.process(image_path, model_name)
+        try:
+            tags = self._interrogator.process(image_path, model_name)
+        except ValueError as e:
+            # we're not using it properly.
+            # todo: cleanup
+            return
         logging.info(f"got tags: {tags}")
         logging.info(f"finished job {job_id} with model name: {model_name}")
         # TODO: write to output and clean up
