@@ -58,6 +58,9 @@ class InputWatcher(FileSystemEventHandler):
         except RuntimeError as e:
             self._write_error_response(str(e), job_id)
             logging.error(f"Failed to handle zip file: {e}")
+        except TimeoutError as e:
+            self._write_error_response(str(e), job_id)
+            logging.error(f"Timeout waiting for zip file {zip_path}: {e}")
         os.remove(zip_path)
         job_working_dir = self.get_job_working_dir(job_id)
         shutil.rmtree(job_working_dir)
@@ -70,13 +73,25 @@ class InputWatcher(FileSystemEventHandler):
             raise ValueError(f"File {zip_path} must have .zip extension")
 
     def _wait_until_file_ready(self, zip_path):
+        return self._wait_until_stable(zip_path)
+        # max_wait = 5
+        # expiry = time.time() + max_wait
+        # while not _is_file_closed(zip_path):
+        #     if time.time() > expiry:
+        #         raise TimeoutError(f"File {zip_path} wasn't closed closed after {max_wait} seconds.")
+        #     time.sleep(0.1)
+    def _wait_until_stable(self, zip_path):
+        previous_size = -1
         max_wait = 5
         expiry = time.time() + max_wait
-        while not _is_file_closed(zip_path):
+        while True:
             if time.time() > expiry:
-                raise TimeoutError(f"File {zip_path} wasn't closed closed after {max_wait} seconds.")
-            time.sleep(0.1)
-
+                raise TimeoutError(f"File {zip_path} wasn't ready after {max_wait} seconds.")
+            current_size = os.path.getsize(zip_path)
+            if current_size == previous_size:
+                return True
+            previous_size = current_size
+            time.sleep(1)
     def _handle_zip(self, zip_path):
         logging.info(f"Handling zip file: {zip_path}")
         job_id: str = self._zip_path_to_job_id(zip_path)
@@ -190,12 +205,23 @@ def delete_all_in_path(path):
 def unzip_file(zip_file_path, destination_folder):
     # Ensure the destination folder exists
     os.makedirs(destination_folder, exist_ok=True)
+    expiry = time.time() + 5
 
     # Open the zip file
-    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-        # Extract all files to the destination folder
-        zip_ref.extractall(destination_folder)
-        print(f"Extracted all files to {destination_folder}")
+    while True:
+        if time.time() > expiry:
+            os.remove(zip_file_path)
+            raise TimeoutError
+        try:
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                # Extract all files to the destination folder
+                zip_ref.extractall(destination_folder)
+                print(f"Extracted all files to {destination_folder}")
+                return
+        except zipfile.BadZipFile as e:
+            print(f"Failed to extract {zip_file_path}: {e}")
+            time.sleep(0.1)
+
 
 
 def read_json(file_path):

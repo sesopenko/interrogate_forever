@@ -116,7 +116,9 @@ class Interrogator:
         logging.info(f"filtering {len(tags)} tags with threshold {threshold}")
         filtered = {tag: confidence for tag, confidence in tags.items() if confidence > threshold}
         logging.info(f"filtered down to {len(filtered)} tags")
-        return list(filtered.keys())
+        keys = list(filtered.keys())
+        keys = [s.replace("_", " ") for s in keys]
+        return keys
     def _preprocess_image(self, image_path: str, model_name: str) -> Image.Image:
         target_size = Interrogator.get_dimensions_for_model(model_name)
         image: Image.Image = Image.open(image_path)
