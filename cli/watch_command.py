@@ -19,6 +19,7 @@ def watch():
     interrogator = Interrogator()
     watcher = InputWatcher(output_path, working_path, interrogator)
     watcher.clean_start()
+    watcher.reprocess_unhandled_jobs(input_path)
     observer = Observer()
     input_observer = InputObserver(input_path, observer, watcher)
     logging.info("Starting input observer")

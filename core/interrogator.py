@@ -130,8 +130,6 @@ class Interrogator:
         return padded_image
 
     def _setup_model(self, model_name):
-        # TODO: set up the correct one based on the name of model.
-        # ie: blip2 vs blip
         logging.info(f"Setting up model: {model_name}")
         architecture = Interrogator.get_model_architecture(model_name)
         if architecture == ARCHITECTURE_BLIP:
@@ -189,9 +187,6 @@ class Interrogator:
     @staticmethod
     def get_valid_models() -> list[str]:
         return [
-            "Salesforce/blip-image-captioning-base",
-            "Salesforce/blip2-opt-2.7b",
-            "Salesforce/blip2-flan-t5-xl",
             "SmilingWolf/wd-vit-large-tagger-v3",
         ]
 
