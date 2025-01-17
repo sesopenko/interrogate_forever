@@ -3,6 +3,7 @@ import os
 
 import click
 from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver
 
 from core.job_watcher import InputObserver
 from core.input_watcher import InputWatcher
@@ -20,7 +21,13 @@ def watch():
     watcher = InputWatcher(output_path, working_path, interrogator)
     watcher.clean_start()
     watcher.reprocess_unhandled_jobs(input_path)
-    observer = Observer()
+    if is_running_in_docker():
+        observer = PollingObserver()
+    else:
+        observer = Observer()
     input_observer = InputObserver(input_path, observer, watcher)
     logging.info("Starting input observer")
     input_observer.start()
+
+def is_running_in_docker():
+    return os.path.exists('/.dockerenv')
