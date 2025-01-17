@@ -64,6 +64,5 @@ https://www.gnu.org/licenses/gpl-3.0.txt
 ## Attribution
 
 * [test_assets/attribution.md](test_assets/attribution.md)
-*
 
 Copyright © Sean Esopenko 2025
